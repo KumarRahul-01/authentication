@@ -1,6 +1,6 @@
 const Student = require("../model/student");
 const sendOTPverification = require("../utils/emailVerification");
-const OTP= require('../model/otp');
+const OTP = require("../model/otp");
 const student = require("../model/student");
 
 class StudentController {
@@ -35,31 +35,50 @@ class StudentController {
     }
   }
 
-  async getAllStudent(req,res){
+  async getAllStudent(req, res) {
     try {
-      const allStudent=await Student.find()
+      const allStudent = await Student.find();
       res.status(200).json({
-        status:true,
-        message:"All data",
-        total:allStudent.length,
-        allStudent
-
-      })
-      
+        status: true,
+        message: "All data",
+        total: allStudent.length,
+        allStudent,
+      });
     } catch (error) {
       res.status(500).json({
-        status:false,
-        message:error.message
-      })
-      
+        status: false,
+        message: error.message,
+      });
     }
   }
-   
-  async verifyOTP(req,res){
+  async getStudentByID(req, res) {
     try {
-      const {email,otp}=req.body;
+      const { id } = req.params;
+      const studentData = await Student.findById(id);
+      if (!studentData) {
+        return res.status(404).json({
+          status: false,
+          message: "Student not found",
+        });
+      }
+      res.status(200).json({
+        status: true,
+        message: "Student data",
+        studentData,
+      });
+    } catch (error) {
+      res.status(500).json({
+        status: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async verifyOTP(req, res) {
+    try {
+      const { email, otp } = req.body;
       // Validate input
-      if ( !email||!otp) {
+      if (!email || !otp) {
         return res.status(400).json({
           status: false,
           message: "All fields are required.",
@@ -73,10 +92,10 @@ class StudentController {
           message: "Email doesn't exist.",
         });
       }
-      const otpVerification= await OTP.findOne({
-        studentId:student._id,
-        otp
-      })
+      const otpVerification = await OTP.findOne({
+        studentId: student._id,
+        otp,
+      });
       // If OTP doesn't match
       if (!otpVerification) {
         await sendOTPverification(req, student); //resend otp to the user
@@ -92,16 +111,14 @@ class StudentController {
         status: true,
         message: "email verify successfully",
         otpVerification,
-      })
-      
+      });
     } catch (error) {
       res.status(500).json({
         status: false,
         message: error.message,
       });
     }
-    }
-  
+  }
 
   async updateStudent(req, res) {
     try {
